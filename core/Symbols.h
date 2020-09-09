@@ -169,6 +169,16 @@ public:
         return typeParams;
     }
 
+    inline InlinedVector<SymbolRef, 4> &mixedInClassMethods() {
+        // TODO: ENFORCE??
+        return mixedInClassMethods_;
+    }
+
+    inline const InlinedVector<SymbolRef, 4> &mixedInClassMethods() const {
+        // TODO: ENFORCE??
+        return mixedInClassMethods_;
+    }
+
     bool derivesFrom(const GlobalState &gs, SymbolRef sym) const;
 
     // TODO(dmitry) perf: most calls to this method could be eliminated as part of perf work.
@@ -691,6 +701,8 @@ private:
      */
     InlinedVector<SymbolRef, 4> typeParams;
     InlinedVector<Loc, 2> locs_;
+
+    InlinedVector<SymbolRef, 4> mixedInClassMethods_;
 
     SymbolRef findMemberTransitiveInternal(const GlobalState &gs, NameRef name, u4 mask, u4 flags,
                                            int maxDepth = 100) const;
