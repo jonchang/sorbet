@@ -170,12 +170,12 @@ public:
     }
 
     inline InlinedVector<SymbolRef, 4> &mixedInClassMethods() {
-        // TODO: ENFORCE??
+        ENFORCE(isClassOrModule());
         return mixedInClassMethods_;
     }
 
     inline const InlinedVector<SymbolRef, 4> &mixedInClassMethods() const {
-        // TODO: ENFORCE??
+        ENFORCE(isClassOrModule());
         return mixedInClassMethods_;
     }
 
