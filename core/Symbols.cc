@@ -813,7 +813,8 @@ string Symbol::toStringWithOptions(const GlobalState &gs, int tabs, bool showFul
             continue;
         }
 
-        if (pair.first == Names::singleton() || pair.first == Names::attached()) {
+        if (pair.first == Names::singleton() || pair.first == Names::attached() ||
+            pair.first == Names::mixedInClassMethods()) {
             continue;
         }
 
@@ -1174,7 +1175,6 @@ Symbol Symbol::deepCopy(const GlobalState &to, bool keepGsId) const {
     result.owner = this->owner;
     result.flags = this->flags;
     result.mixins_ = this->mixins_;
-    result.mixedInClassMethods_ = this->mixedInClassMethods_;
     result.resultType = this->resultType;
     result.name = NameRef(to, this->name.id());
     result.locs_ = this->locs_;
