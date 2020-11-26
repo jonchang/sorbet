@@ -387,12 +387,11 @@ void Resolver::finalizeSymbols(core::GlobalState &gs) {
             }
             for (auto &mixedInClassMethod : mixedInClassMethods.data(gs)->arguments()) {
                 ENFORCE(mixedInClassMethod.rebind.data(gs)->isClassOrModule());
-                singleton.data(gs)->addMixin(mixedInClassMethod.rebind);
-            }
-            if (!singleton.data(gs)->addMixin(gs, classMethods)) {
-                // Should never happen. We check in ResolveConstantsWalk that classMethods are a module before adding it
-                // as a member.
-                ENFORCE(false);
+                if (!singleton.data(gs)->addMixin(gs, mixedInClassMethod.rebind)) {
+                    // Should never happen. We check in ResolveConstantsWalk that classMethods are a module before
+                    // adding it as a member.
+                    ENFORCE(false);
+                }
             }
         }
     }
