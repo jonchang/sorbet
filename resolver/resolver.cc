@@ -1065,6 +1065,11 @@ class ResolveTypeMembersAndFieldsWalk {
         core::FileRef file;
     };
 
+    struct ResolveSimpleFieldItem {
+        core::SymbolRef field;
+        core::SymbolRef resultType;
+    };
+
     struct ResolveCastItem {
         core::FileRef file;
         core::SymbolRef owner;
@@ -1150,7 +1155,7 @@ class ResolveTypeMembersAndFieldsWalk {
 
     // Resolve a cast to a simple, non-generic class type (e.g., T.let(x, ClassOrModule)). Returns `false` if
     // `ResolveCastItem` is not simple.
-    static bool tryResolveSimpleClassCastItem(core::MutableContext ctx, ResolveCastItem &job) {
+    static bool tryResolveSimpleClassCastItem(core::Context ctx, ResolveCastItem &job) {
         if (!ast::isa_tree<ast::ConstantLit>(*job.typeArg)) {
             return false;
         }
@@ -1171,7 +1176,7 @@ class ResolveTypeMembersAndFieldsWalk {
     }
 
     // Resolve a potentially more complex cast (e.g., may reference type member or alias).
-    static void resolveCastItem(core::MutableContext ctx, ResolveCastItem &job) {
+    static void resolveCastItem(core::Context ctx, ResolveCastItem &job) {
         ParsedSig emptySig;
         auto allowSelfType = true;
         auto allowRebind = false;
@@ -1693,7 +1698,7 @@ public:
                     return tree;
                 }
 
-                ResolveCastItem &item = todoResolveCastItems_.emplace_back();
+                ResolveCastItem item;
                 item.file = ctx.file;
 
                 // Compute the containing class when translating the type,
@@ -1706,6 +1711,11 @@ public:
                 auto cast = ast::make_tree<ast::Cast>(send.loc, nullptr, std::move(expr), send.fun);
                 item.cast = ast::cast_tree<ast::Cast>(cast);
                 item.typeArg = &ast::cast_tree_nonnull<ast::Send>(typeExpr).args[0];
+
+                // We should be able to resolve simple casts immediately.
+                if (!tryResolveSimpleClassCastItem(ctx.withOwner(item.owner), item)) {
+                    todoResolveCastItems_.emplace_back(move(item));
+                }
 
                 return ast::MK::InsSeq1(send.loc, move(typeExpr), move(cast));
             }
@@ -1860,16 +1870,8 @@ public:
             resolveAttachedClass(ctx, job.klass, resolvedAttachedClasses);
         }
 
-        // Resolve simple casts and field declarations. Required so that `type_alias` can refer to an enum value type
+        // Resolve simple field declarations. Required so that `type_alias` can refer to an enum value type
         // (which is a static field).
-        {
-            auto it = remove_if(combined.todoResolveCastItems.begin(), combined.todoResolveCastItems.end(),
-                                [&](ResolveCastItem &job) {
-                                    core::MutableContext ctx(gs, job.owner, job.file);
-                                    return tryResolveSimpleClassCastItem(ctx, job);
-                                });
-            combined.todoResolveCastItems.erase(it, combined.todoResolveCastItems.end());
-        }
         {
             auto it = remove_if(combined.todoResolveFieldItems.begin(), combined.todoResolveFieldItems.end(),
                                 [&](ResolveFieldItem &job) {
