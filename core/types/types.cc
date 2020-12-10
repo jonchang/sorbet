@@ -144,7 +144,7 @@ TypePtr Types::falsyTypes() {
     return res;
 }
 
-TypePtr Types::dropSubtypesOf(const GlobalState &gs, const TypePtr &from, SymbolRef klass) {
+TypePtr Types::dropSubtypesOf(const GlobalState &gs, const TypePtr &from, ClassOrModuleRef klass) {
     TypePtr result;
 
     if (from.isUntyped()) {
@@ -179,7 +179,7 @@ TypePtr Types::dropSubtypesOf(const GlobalState &gs, const TypePtr &from, Symbol
             auto cdata = c.symbol.data(gs);
             if (c.symbol == core::Symbols::untyped()) {
                 result = from;
-            } else if (SymbolRef(c.symbol) == klass || c.derivesFrom(gs, klass.asClassOrModuleRef())) {
+            } else if (SymbolRef(c.symbol) == klass || c.derivesFrom(gs, klass)) {
                 result = Types::bottom();
             } else if (c.symbol.data(gs)->isClassOrModuleClass() && klass.data(gs)->isClassOrModuleClass() &&
                        !klass.data(gs)->derivesFrom(gs, c.symbol)) {
@@ -197,7 +197,7 @@ TypePtr Types::dropSubtypesOf(const GlobalState &gs, const TypePtr &from, Symbol
             }
         },
         [&](const AppliedType &c) {
-            if (c.klass == klass.asClassOrModuleRef() || c.derivesFrom(gs, klass.asClassOrModuleRef())) {
+            if (c.klass == klass || c.derivesFrom(gs, klass)) {
                 result = Types::bottom();
             } else {
                 result = from;
