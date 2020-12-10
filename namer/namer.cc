@@ -1081,7 +1081,7 @@ class SymbolDefiner {
 
             auto oldSymCount = ctx.state.classAndModulesUsed();
             auto newSingleton = symbol.data(ctx)->singletonClass(ctx); // force singleton class into existence
-            ENFORCE(newSingleton.classOrModuleIndex() >= oldSymCount,
+            ENFORCE(newSingleton.id() >= oldSymCount,
                     "should be a fresh symbol. Otherwise we could be reusing an existing singletonClass");
             return symbol;
         } else if (symbol.data(ctx)->isClassModuleSet() && isModule != symbol.data(ctx)->isClassOrModuleModule()) {
@@ -1502,8 +1502,7 @@ public:
 
         if ((ident != nullptr) && ident->name == core::Names::singleton()) {
             ENFORCE(ident->kind == ast::UnresolvedIdent::Kind::Class);
-            klass.symbol =
-                ctx.owner.data(ctx)->enclosingClass(ctx).data(ctx)->lookupSingletonClass(ctx).asClassOrModuleRef();
+            klass.symbol = ctx.owner.data(ctx)->enclosingClass(ctx).data(ctx)->lookupSingletonClass(ctx);
             ENFORCE(klass.symbol.exists());
         } else {
             core::SymbolRef symbol = klass.symbol;
